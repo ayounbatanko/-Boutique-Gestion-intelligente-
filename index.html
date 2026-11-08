@@ -28,7 +28,7 @@
 html{-webkit-tap-highlight-color:transparent}body{overscroll-behavior-y:contain;-webkit-user-select:none;user-select:none}input,textarea,select{-webkit-user-select:text;user-select:text}
 .btn,.mini,.nav-item,.seg button{min-height:40px}.mini{min-height:34px;padding:7px 11px}input,select,textarea{font-size:16px!important}
 .topbar{padding-top:env(safe-area-inset-top)}.bottomnav{display:none}
-@media(max-width:760px){main{padding-bottom:calc(96px + env(safe-area-inset-bottom))}.bottomnav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:9;background:#fff;border-top:1px solid var(--line);padding:6px 4px calc(6px + env(safe-area-inset-bottom));box-shadow:0 -6px 24px #0000000d}.bottomnav button{flex:1;border:0;background:none;color:var(--muted);font-size:10px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;border-radius:10px}.bottomnav button span{font-size:19px}.bottomnav button.on{color:var(--forest);background:#edf4e8}.toast{bottom:90px}}
+@media(max-width:760px){main{padding-bottom:calc(96px + env(safe-area-inset-bottom))}.bottomnav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:9;background:#fff;border-top:1px solid var(--line);padding:6px 4px calc(6px + env(safe-area-inset-bottom));box-shadow:0 -6px 24px #0000000d}.bottomnav button{flex:1;border:0;background:none;color:var(--muted);font-size:10px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;border-radius:10px}.bottomnav button span{font-size:19px}.bottomnav button.on{color:var(--forest);background:#edf4e8}.toast{bottom:90px}.toast{z-index:100000!important}}
 [data-theme=dark] .bottomnav{background:#16201b}[data-theme=dark] .bottomnav button.on{color:var(--lime);background:#1f2c26}
 #subBar{padding:9px 34px;font-size:12px;font-weight:600;background:#fff7e0;color:#7a5a10;border-bottom:1px solid #f0dfae;cursor:pointer}#subBar.warn{background:#fff0ef;color:#a33;border-color:#f3c9c6}@media(max-width:760px){#subBar{padding:9px 15px}}#modalWrap{z-index:70}input[type=file]{font-size:13px!important;width:100%;max-width:100%}.modal-actions{flex-wrap:wrap}.code{width:100%;font:11px monospace;word-break:break-all}
 /* Masquer le badge Netlify s'il est injecté par l'hôte */
@@ -61,7 +61,7 @@ iframe[id^="netlify"], a[href*="netlify.com/experimental"], div:has(> a[href*="n
   <div class="side-bottom"><button class="nav-item" data-page="settings"><span>⚙</span> Paramètres</button><div class="offline"><i></i> Mode hors connexion prêt</div></div>
 </aside>
 <div class="main-area">
-<header class="topbar"><button class="icon-btn mobile-menu" id="mobileMenu">☰</button><div><div class="crumb">ESPACE BOUTIQUE</div><h1 id="pageTitle">Tableau de bord</h1></div><div class="top-actions"><span class="today" id="today"></span><button class="user-chip" id="userChip"><span class="avatar">RG</span><span>Administrateur</span></button></div></header>
+<header class="topbar"><button class="icon-btn mobile-menu" id="mobileMenu">☰</button><div><div class="crumb">ESPACE BOUTIQUE</div><h1 id="pageTitle">Tableau de bord</h1></div><div class="top-actions"><button class="icon-btn notranslate" id="topLang" type="button" onclick="openLang()" title="Langue / Language" aria-label="Langue" style="font-size:18px">🌐</button><span class="today" id="today"></span><button class="user-chip" id="userChip"><span class="avatar">RG</span><span>Administrateur</span></button></div></header>
 <div id="subBar" hidden onclick="setTab='sub';setPage('settings')"></div><main id="main"></main>
 </div>
 </div>
@@ -609,7 +609,7 @@ const BN=[["dashboard","▦","Accueil"],["pos","＋","Caisse"],["supply","🚚",
 const _sp=setPage;setPage=function(p){_sp(p);$("#bnav").innerHTML=BN.filter(x=>can(x[0])).map(x=>`<button class="${x[0]===page?"on":""}" onclick="setPage('${x[0]}')"><span>${x[1]}</span>${x[2]}</button>`).join("");window.scrollTo(0,0)};
 
 /* ================= CONFIGURATION ABONNEMENT (à personnaliser) ================= */
-const APP_VERSION="2.3.4";
+const APP_VERSION="2.3.5";
 const BILLING={app:"BoutiqueGest",trialDays:30,wa:"",cur:"FCFA",price:"à partir de 10 000 FCFA / mois",
 plans:[[1,"1 mois",10000],[3,"3 mois",27000],[6,"6 mois",51000],[12,"12 mois",96000]],
 pay:[],sup:[],
@@ -628,7 +628,7 @@ let SUB={s:"trial",days:BILLING.trialDays};
 async function checkSub(){try{let now=Date.now(),seen=+LS.rg_seen||now,eff=Math.max(now,seen);LS.rg_seen=eff;let t=+LS.rg_trial;if(!t){t=now;LS.rg_trial=t}
 if(LS.rg_owner_priv)SUB={s:"owner",days:999};else{let L=LS.rg_lic?await verifyLic(LS.rg_lic):null;
 if(L&&L.d===devId()&&L.e>=ymd(new Date(eff))){let start=L.i||LS.rg_lic_start||ymd(new Date());if(L.i)LS.rg_lic_start=L.i;SUB={s:"pro",exp:L.e,start,days:Math.ceil((new Date(L.e+"T23:59:59")-eff)/864e5),total:Math.max(1,Math.ceil((new Date(L.e+"T23:59:59")-new Date((L.i||start)+"T00:00:00"))/864e5))};
-}else{let left=Math.ceil((t+BILLING.trialDays*864e5-eff)/864e5);SUB=left>0?{s:"trial",days:left}:{s:"expired",days:0}}}}catch(e){SUB={s:"expired",days:0}}drawSub()}
+}else{let left=LS.rg_lic?0:Math.ceil((t+BILLING.trialDays*864e5-eff)/864e5);SUB=left>0?{s:"trial",days:left}:{s:"expired",days:0}}}}catch(e){SUB={s:"expired",days:0}}drawSub()}
 function subBox(){let s=SUB,pe=LS.rg_pending?JSON.parse(LS.rg_pending):null,st,cd="";
 if(s.s==="pro"){
   let pct=Math.max(0,Math.min(100,Math.round((s.days/Math.max(1,s.total||s.days))*100)));
@@ -710,9 +710,8 @@ async function issueLic(){
     LASTCODE=await makeLic(n,d,m,mode);
     // Pousser automatiquement vers l'appareil du partenaire
     try{
-      const response=await fetch(`${BILLING.ntfy}/rglic-${d}`,{method:"POST",headers:{Title:"Abonnement mis à jour — "+m+" mois"},body:LASTCODE});
-      if(response.ok) toast("Abonnement généré et envoyé au partenaire ("+(mode==="replace"?"nouvelle durée":"prolongation")+")");
-      else toast("Code généré (envoi distant échoué — envoyez manuellement)");
+      await ntfyPost("rglic-"+d,LASTCODE,{title:"Abonnement mis a jour - "+m+" mois",tags:"white_check_mark",priority:"high"});
+      toast("Abonnement généré et envoyé au partenaire ("+(mode==="replace"?"nouvelle durée":"prolongation")+")");
     }catch(e){toast("Code généré (hors ligne — envoyez manuellement)")}
     render();
   }catch(e){toast("Erreur : clé propriétaire manquante.")}
@@ -728,10 +727,9 @@ async function changeClientPlan(i){
       let m=+$("#chMonths").value,mode=$("#chMode").value;
       try{
         LASTCODE=await makeLic(c.name,c.dev,m,mode);
-        const response=await fetch(`${BILLING.ntfy}/rglic-${c.dev}`,{method:"POST",headers:{Title:"Abonnement modifié — "+m+" mois"},body:LASTCODE});
+        let okSend=true;try{await ntfyPost("rglic-"+c.dev,LASTCODE,{title:"Abonnement modifie - "+m+" mois",tags:"white_check_mark",priority:"high"})}catch(e2){okSend=false}
         closeModal();
-        if(response.ok)toast("✅ Abonnement modifié et envoyé au partenaire");
-        else toast("Modifié localement, envoi distant échoué");
+        toast(okSend?"✅ Abonnement modifié et envoyé au partenaire":"Modifié localement, envoi distant échoué");
         render();
       }catch(e){toast("Erreur : "+(e.message||e))}
     });
@@ -742,7 +740,7 @@ const shrink=f=>new Promise((res,rej)=>{let im=new Image();im.onload=()=>{let k=
 function upPay(){let pl=BILLING.plans.find(p=>p[0]===+$("#pyPlan").value),me=BILLING.pay[+$("#pyMethod").value];$("#pyInfo").innerHTML=`<b>1.</b> Envoyez <b>${fm(pl[2])}</b> via <b>${esc(me.name)}</b> au <b>${esc(me.num)}</b> (${esc(me.holder)}).<br><button class="mini" style="margin:6px 0" onclick="navigator.clipboard.writeText('${esc(me.num).replace(/\s/g,"")}').then(()=>toast('Numéro copié.'))">Copier le numéro</button>${me.url?` <a class="mini" target="_blank" rel="noopener" href="${esc(me.url)}">Ouvrir le lien de paiement</a>`:""}<br><b>2.</b> Revenez ici, indiquez la référence et joignez la capture du reçu.`}
 function openPay(){modal("Payer mon abonnement Pro",`${sel("pyPlan","Formule",BILLING.plans[0][0],BILLING.plans.map(p=>[p[0],p[1]+" — "+fm(p[2])]))}<div style="height:10px"></div>${sel("pyMethod","Mode de paiement",0,BILLING.pay.map((p,i)=>[i,p.name]))}<div id="pyInfo" class="hint" style="background:#f4f6f3;border-radius:10px;padding:12px;margin:12px 0"></div>${inp("pyName","Votre nom / boutique",db.settings.name)}<div style="height:10px"></div>${inp("pyRef","Numéro de transaction / référence","")}<div class="form-group" style="margin-top:10px"><label>Capture du reçu (recommandé)</label><input id="pyImg" type="file" accept="image/*"></div>`,"J'ai payé — envoyer",sendPay);$("#pyPlan").onchange=$("#pyMethod").onchange=upPay;upPay()}
 async function sendPay(){let m=+$("#pyPlan").value,pl=BILLING.plans.find(p=>p[0]===m),me=BILLING.pay[+$("#pyMethod").value],nm=$("#pyName").value.trim(),ref=$("#pyRef").value.trim(),f=$("#pyImg").files[0];if(!nm)return toast("Indiquez votre nom.");if(!ref&&!f)return toast("Ajoutez la référence ou la capture du reçu.");
-let msg=ascii(`Client: ${nm} | Appareil: ${devId()} | Mois: ${m} | Montant: ${fm(pl[2])} | Mode: ${me.name} | Ref: ${ref||"-"}`),title=ascii("Paiement abonnement - "+nm).slice(0,80),url=BILLING.ntfy+"/"+BILLING.topic,btn=$("#modalSubmit");btn.disabled=true;btn.textContent="Envoi…";
+let msg=payMsg(nm,m,pl,me,ref),title=ascii("Paiement abonnement - "+nm).slice(0,80),url=BILLING.ntfy+"/"+BILLING.topic,btn=$("#modalSubmit");btn.disabled=true;btn.textContent="Envoi…";
 try{let r;if(f){let blob=await shrink(f);r=await fetch(url,{method:"PUT",headers:{Title:title,"X-Message":msg,Filename:"recu.jpg",Tags:"moneybag",Priority:"high"},body:blob})}else r=await fetch(url,{method:"POST",headers:{Title:title,Tags:"moneybag",Priority:"high"},body:msg});if(!r.ok)throw 0;
 LS.rg_pending=JSON.stringify({t:Date.now(),m,amount:pl[2],method:me.name});delete LS.rg_rej;closeModal();drawSub();render();startLicPolling();pollLic();toast("Confirmation envoyée ✓ En attente de validation du propriétaire…")}catch(e){btn.disabled=false;btn.textContent="J'ai payé — envoyer";toast("Envoi impossible : vérifiez votre connexion internet.")}}
 let polling=0;
@@ -790,7 +788,7 @@ function startLicPolling(){
 /* ---------- Validation côté propriétaire ---------- */
 let REQS=[],lastN=-1;const doneIds=()=>JSON.parse(LS.rg_done||"[]");
 function reqHtml(){if(!REQS||!REQS.length)return `<p class="empty">Aucune demande de paiement.</p>`;let dn=doneIds();return `<div class="table-wrap"><table class="data-table"><tr><th>Reçue le</th><th>Client</th><th>Paiement</th><th>Reçu</th><th></th></tr>${REQS.map(r=>`<tr><td>${new Date(r.time*1000).toLocaleString("fr-FR")}</td><td><b>${esc(r.name)}</b><br><small>${esc(r.dev)}</small></td><td>${esc(r.amount)}<br><small>${esc(r.method)} · Réf ${esc(r.ref)} · ${r.m} mois</small></td><td>${r.img?`<a href="${esc(r.img)}" target="_blank" rel="noopener"><img src="${esc(r.img)}" style="height:46px;border-radius:6px"></a>`:"—"}</td><td>${dn.includes(r.id)?`<span class="pill">Traité</span>`:`<button class="mini" onclick="approveReq('${r.id}')">✓ Valider</button> <button class="mini" onclick="rejectReq('${r.id}')">✕ Refuser</button>`}</td></tr>`).join("")}</table></div>`}
-async function loadReqs(){if(!LS.rg_owner_priv)return;try{let t=await(await fetch(`${BILLING.ntfy}/${BILLING.topic}/json?poll=1&since=all`)).text();REQS=t.trim().split("\n").filter(Boolean).map(x=>{try{return JSON.parse(x)}catch(e){return null}}).filter(e=>e&&e.event==="message"&&/Appareil: [A-Z0-9]{10}/.test(e.message||"")).map(e=>{let g=k=>((e.message.match(new RegExp(k+": ([^|]*)"))||[])[1]||"").trim();return{id:e.id,time:e.time,name:g("Client"),dev:g("Appareil"),m:+g("Mois"),amount:g("Montant"),method:g("Mode"),ref:g("Ref"),img:e.attachment&&e.attachment.url}}).reverse();let n=REQS.filter(r=>!doneIds().includes(r.id)).length;if(lastN>=0&&n>lastN){toast("💰 Nouvelle demande d'abonnement à valider");try{if(Notification.permission==="granted")new Notification("BoutiqueGest — Demande d'abonnement",{body:n+" demande(s) en attente de validation",tag:"bg-pay"})}catch(e){}updateOwnerBadge(n)}lastN=n;updateOwnerBadge(n)}catch(e){}let b=$("#reqBox");if(b)b.innerHTML=reqHtml()}
+async function loadReqs(){if(!LS.rg_owner_priv)return;try{let t=await(await fetch(`${BILLING.ntfy}/${BILLING.topic}/json?poll=1&since=all`)).text();REQS=t.trim().split("\n").filter(Boolean).map(x=>{try{return JSON.parse(x)}catch(e){return null}}).filter(e=>e&&e.event==="message"&&/Appareil: [A-Z0-9]{10}/.test(e.message||"")).map(e=>{let q=parseReqMsg(e.message);return q?{id:e.id,time:e.time,name:q.name,dev:q.dev,m:q.m,amount:q.amount,method:q.method,ref:q.ref,img:e.attachment&&e.attachment.url}:null}).filter(Boolean).reverse();let n=REQS.filter(r=>!doneIds().includes(r.id)).length;if(lastN>=0&&n>lastN){toast("💰 Nouvelle demande d'abonnement à valider");try{if(Notification.permission==="granted")new Notification("BoutiqueGest — Demande d'abonnement",{body:n+" demande(s) en attente de validation",tag:"bg-pay"})}catch(e){}updateOwnerBadge(n)}lastN=n;updateOwnerBadge(n)}catch(e){}let b=$("#reqBox");if(b)b.innerHTML=reqHtml()}
 function updateOwnerBadge(n){let btn=[...document.querySelectorAll(".tabs button")].find(b=>b.textContent.includes("Propriétaire"));if(btn){let base=btn.textContent.replace(/\s*\(\d+\)\s*$/,"").replace(/^\d+\s+/,"");btn.textContent=n>0?`Propriétaire (${n})`:base.replace(/\s*\(\d+\)$/,"")||"Propriétaire"}}
 let ownerPollTimer=null;
 function startOwnerPolling(){
@@ -802,17 +800,18 @@ function startOwnerPolling(){
 const markDone=id=>LS.rg_done=JSON.stringify([...doneIds(),id]);
 async function approveReq(id){
  let r=REQS.find(x=>x.id===id);
- if(!r||doneIds().includes(id)||!confirm("Avez-vous bien reçu "+r.amount+" de "+r.name+" ? L'abonnement sera activé automatiquement sur son téléphone."))return;
+ if(!r||doneIds().includes(id))return;
+ if(!await askConfirm("Valider l'abonnement","Avez-vous bien reçu <b>"+esc(r.amount)+"</b> de <b>"+esc(r.name)+"</b> ?<br>L'abonnement Pro de <b>"+r.m+" mois</b> sera activé automatiquement sur son téléphone.","✓ Oui, valider"))return;
+ if(!(r.m>0)||!/^[A-Z0-9]{10}$/.test(r.dev))return toast("Demande illisible (appareil ou durée invalide).");
  try{
   LASTCODE=await makeLic(r.name,r.dev,r.m);
-  const response=await fetch(`${BILLING.ntfy}/rglic-${r.dev}`,{method:"POST",headers:{Title:"Paiement confirmé — abonnement activé"},body:LASTCODE});
-  if(!response.ok)throw new Error("Transmission impossible");
+  await ntfyPost("rglic-"+r.dev,LASTCODE,{title:"Paiement confirme - abonnement active",tags:"white_check_mark",priority:"high"});
   markDone(id);
   await loadReqs();render();
   toast("Paiement confirmé : activation envoyée au téléphone du partenaire.");
  }catch(e){toast("Activation non transmise. Vérifiez Internet puis réessayez : "+(e.message||"erreur"))}
 }
-async function rejectReq(id){let r=REQS.find(x=>x.id===id);if(!r||!confirm("Refuser cette demande ?"))return;try{await fetch(`${BILLING.ntfy}/rglic-${r.dev}`,{method:"POST",headers:{Title:"Paiement non valide"},body:"REJ:Paiement non reçu"});markDone(id);loadReqs();toast("Demande refusée.")}catch(e){toast("Envoi impossible.")}}
+async function rejectReq(id){let r=REQS.find(x=>x.id===id);if(!r)return;if(!await askConfirm("Refuser la demande","Refuser la demande de <b>"+esc(r.name)+"</b> ?","✕ Refuser"))return;try{await ntfyPost("rglic-"+r.dev,"REJ:Paiement non recu",{title:"Paiement non valide",priority:"high"});markDone(id);await loadReqs();toast("Demande refusée.")}catch(e){toast("Envoi impossible : "+(e.message||"réseau"))}}
 
 /* ---------- Messagerie propriétaire ↔ partenaire (via ntfy) ---------- */
 const chatTopic=dev=>`rgchat-${dev}`;
@@ -1157,7 +1156,7 @@ async function pollLicPush(){
 }
 
 if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
-checkSub();setInterval(checkSub,36e5);startLicPolling();if(LS.rg_pending)pollLic();
+checkSub();setInterval(checkSub,6e4);startLicPolling();if(LS.rg_pending)pollLic();
 if(LS.rg_owner_priv)startOwnerPolling();
 checkAppUpdate();setInterval(checkAppUpdate,60000);
 setInterval(pollLicPush,12000);
@@ -1196,14 +1195,15 @@ async function sendChat(dev,text,asOwner){
  text=(text||'').trim();const file=chatFileSel;
  if(!text&&!file)return toast('Écrivez un message ou joignez un fichier.');
  if(text.length>500)return toast('Message trop long (500 car. max).');
+ if(!dev)return toast('Conversation introuvable.');
  const from=asOwner?'owner':'partner',name=asOwner?(curUser().name||'Propriétaire'):(db.settings.name||curUser().name||'Partenaire');
- const clean=(text||'(fichier)').replace(/\|/g,'/'),h={Title:(asOwner?'Message support - ':'Message partenaire - ')+ascii(name),Tags:'speech_balloon',Priority:'default'};
+ const clean=(text||'(fichier)').replace(/\|/g,'/').replace(/[\r\n]+/g,' ');
+ const title=(asOwner?'Message support - ':'Message partenaire - ')+ascii(name);
  try{
-  let r;const url=`${BILLING.ntfy}/${chatTopic(dev)}`;
-  if(file){h.Filename=ascii(file.name)||'fichier';h.Message=`CHAT|${from}|${ascii(name)}|${ascii(clean)||'(fichier)'}`;r=await fetch(url,{method:'PUT',headers:h,body:file})}
-  else r=await fetch(url,{method:'POST',headers:h,body:`CHAT|${from}|${ascii(name)}|${clean}`});
-  if(!r.ok){let t='';try{t=(await r.json()).error||''}catch(e){}throw new Error(t||('HTTP '+r.status))}
-  const j=await r.json().catch(()=>({})),id=j.id||('local-'+Date.now());
+  let j;const topic=chatTopic(dev);
+  if(file)j=await ntfyPost(topic,file,{title,message:`CHAT|${from}|${ascii(name)}|${ascii(clean)||'(fichier)'}`,filename:ascii(file.name)||'fichier',tags:'speech_balloon'},'PUT');
+  else j=await ntfyPost(topic,`CHAT|${from}|${ascii(name)}|${clean}`,{title,tags:'speech_balloon'});
+  j=j||{};const id=j.id||('local-'+Date.now());
   const o={id,time:j.time||Math.floor(Date.now()/1000),from,name,text:file&&!text?'':text};
   if(file){o.att={name:file.name,type:file.type,size:file.size,url:(j.attachment&&j.attachment.url)||'',exp:(j.attachment&&j.attachment.expires)||0};await idbPut(id,file)}
   let local=chatStore(dev);if(!local.some(m=>m.id===id)){local.push(o);chatSave(dev,local)}
@@ -1277,17 +1277,53 @@ function supCfgHtml(d){d.sup=d.sup||[];const T=[['whatsapp','WhatsApp (numéro a
 async function sendPay(){
  let m=+$('#pyPlan').value,pl=BILLING.plans.find(p=>p[0]===m),me=BILLING.pay[+$('#pyMethod').value],nm=$('#pyName').value.trim(),ref=$('#pyRef').value.trim(),f=$('#pyImg').files[0];
  if(!nm)return toast('Indiquez votre nom.');if(!ref&&!f)return toast('Ajoutez la référence ou la capture du reçu.');
- const msg=ascii(`Client: ${nm} | Appareil: ${devId()} | Mois: ${m} | Montant: ${fm(pl[2])} | Mode: ${me.name} | Ref: ${ref||'-'}`),title=ascii('Paiement abonnement - '+nm).slice(0,80),url=BILLING.ntfy+'/'+BILLING.topic,btn=$('#modalSubmit');
+ const msg=payMsg(nm,m,pl,me,ref),title=ascii('Paiement abonnement - '+nm).slice(0,80),btn=$('#modalSubmit');
  btn.disabled=true;btn.textContent='Envoi…';
  try{
-  let r=null,why='';
-  if(f){try{const blob=await shrink(f);r=await fetch(url,{method:'PUT',headers:{Title:title,'X-Message':msg,Filename:'recu.jpg',Tags:'moneybag',Priority:'high'},body:blob});if(!r.ok){why='HTTP '+r.status;r=null}}catch(e){why=(e&&e.message)||'image';r=null}
-   if(!r&&!ref)throw new Error('image non envoyée ('+why+'), ajoutez la référence de transaction');}
-  if(!r)r=await fetch(url,{method:'POST',headers:{Title:title,Tags:'moneybag',Priority:'high'},body:msg});
-  if(!r.ok){let t='';try{t=(await r.json()).error||''}catch(e){}throw new Error('HTTP '+r.status+(t?' '+t:''))}
+  let sent=false,why='';
+  if(f){try{const blob=await shrink(f);await ntfyPost(BILLING.topic,blob,{title,message:msg,filename:'recu.jpg',tags:'moneybag',priority:'high'},'PUT');sent=true}catch(e){why=(e&&e.message)||'image';if(!ref)throw new Error('image non envoyée ('+why+'), ajoutez la référence de transaction')}}
+  if(!sent)await ntfyPost(BILLING.topic,msg,{title,tags:'moneybag',priority:'high'});
   LS.rg_pending=JSON.stringify({t:Date.now(),m,amount:pl[2],method:me.name});delete LS.rg_rej;closeModal();drawSub();render();startLicPolling();pollLic();
-  toast(why?'Envoyé sans le reçu (image refusée) - en attente de validation…':'Confirmation envoyée ✓ En attente de validation du propriétaire…')
+  toast(why&&!sent?'Envoyé sans le reçu (image refusée) - en attente de validation…':'Confirmation envoyée ✓ En attente de validation du propriétaire…')
  }catch(e){btn.disabled=false;btn.textContent="J'ai payé — envoyer";toast('Envoi impossible : '+((e&&e.message)||'réseau')+'. Vérifiez Internet.')}
 }
+</script>
+<script>
+/* ===== v2.3.5 : envoi fiable (ntfy), validation propriétaire, blocage des ventes à l'expiration, bouton langue ===== */
+async function ntfyPost(topic,body,meta,method){
+ meta=meta||{};method=method||'POST';
+ const base=BILLING.ntfy+'/'+topic,A=v=>ascii(v),isBlob=typeof body!=='string';
+ const T=(url,opt,ms)=>{const c=new AbortController(),t=setTimeout(()=>c.abort(),ms);return fetch(url,Object.assign({signal:c.signal,cache:'no-store'},opt)).finally(()=>clearTimeout(t))};
+ const parse=async r=>{if(r.ok)return await r.json().catch(()=>({}));let t='';try{t=(await r.json()).error||''}catch(e){}if(r.status===429)t="limite d'envois atteinte, réessayez dans quelques minutes";throw new Error(t||('HTTP '+r.status))};
+ const hdr=()=>{const h={};if(meta.title)h.Title=A(meta.title);if(meta.tags)h.Tags=meta.tags;if(meta.priority)h.Priority=meta.priority;if(meta.message)h['X-Message']=A(meta.message);if(meta.filename)h.Filename=A(meta.filename);return h};
+ const qs=()=>{const q=new URLSearchParams();if(meta.title)q.set('title',A(meta.title));if(meta.tags)q.set('tags',meta.tags);if(meta.priority)q.set('priority',meta.priority);return q.toString()};
+ const net=e=>e&&(e instanceof TypeError||e.name==='AbortError');
+ let last=null;
+ if(!isBlob){ /* requête simple (sans pré-vérification CORS) d'abord */
+  try{return await parse(await T(base+'?'+qs(),{method:'POST',body},20000))}catch(e){if(!net(e))throw e;last=e}
+ }
+ try{return await parse(await T(base,{method,headers:hdr(),body},isBlob?60000:20000))}catch(e){if(!net(e))throw e;last=e}
+ throw new Error(last&&last.name==='AbortError'?'délai dépassé, réseau trop lent':'connexion impossible, vérifiez Internet');
+}
+/* message de demande de paiement : chaque champ nettoyé, séparateurs " | " conservés */
+function payMsg(nm,m,pl,me,ref){const a=ascii;return `Client: ${a(nm)} | Appareil: ${devId()} | Mois: ${m} | Montant: ${a(fm(pl[2]))} | Mode: ${a(me.name)} | Ref: ${a(ref||'-')}`}
+/* lecture tolérante (anciens messages dont les | étaient devenus des /) */
+function parseReqMsg(msg){const x=String(msg||'').replace(/\s+/g,' ').match(/Client:\s*(.*?)\s*[|\/]\s*Appareil:\s*([A-Z0-9]{10})\s*[|\/]\s*Mois:\s*(\d+)\s*[|\/]\s*Montant:\s*(.*?)\s*[|\/]\s*Mode:\s*(.*?)\s*[|\/]\s*Ref:\s*(.*)$/);return x?{name:x[1],dev:x[2],m:+x[3],amount:x[4],method:x[5],ref:x[6]}:null}
+/* confirmation maison (confirm() est bloqué dans certaines applications Android) */
+function askConfirm(title,html,okText){return new Promise(res=>{const w=document.createElement('div');w.className='modal-wrap';w.style.zIndex='99990';
+ w.innerHTML=`<section class="modal" style="max-width:420px"><h2>${title}</h2><p style="font-size:14px;line-height:1.5">${html}</p><div class="modal-actions"><button class="btn light" id="acNo">Annuler</button><button class="btn primary" id="acYes">${okText||'OK'}</button></div></section>`;
+ document.body.appendChild(w);const done=v=>{w.remove();res(v)};w.querySelector('#acNo').onclick=()=>done(false);w.querySelector('#acYes').onclick=()=>done(true)})}
+/* Ventes bloquées quand l'abonnement est expiré */
+function saleBlocked(){try{if(SUB&&SUB.s==='pro'&&SUB.exp<ymd(new Date()))checkSub()}catch(e){}
+ if(SUB&&SUB.s==='expired'){drawSub();toast("Abonnement expiré : renouvelez-le pour effectuer des ventes.");return true}return false}
+{const c=window.checkout;window.checkout=function(){if(saleBlocked())return;return c.apply(this,arguments)}}
+{const c=window.addCart;window.addCart=function(){if(saleBlocked())return;return c.apply(this,arguments)}}
+{const c=window.startScan;if(c)window.startScan=function(k){if(k==='pos'&&saleBlocked())return;return c.apply(this,arguments)}}
+{const c=window.setPage;window.setPage=function(p){const r=c.apply(this,arguments);if(SUB&&SUB.s==='expired')drawSub();return r}}
+/* Bouton langue (barre du haut + Paramètres > Mon profil) */
+function langCard(){const c=LS.bg_lang||'fr',q=[['fr','Français'],['en','English'],['ar','العربية'],['es','Español'],['pt','Português'],['sw','Kiswahili'],['ha','Hausa']];
+ return `<section class="setting-card notranslate"><h3>🌐 Langue / Language</h3><p class="hint">Langue actuelle : <b>${esc(langName(c))}</b> — la traduction automatique nécessite Internet.</p><div class="seg">${q.map(([k,n])=>`<button class="${c===k?'on':''}" onclick="setLang('${k}')">${n}</button>`).join('')}</div><button class="btn light" style="margin-top:12px" onclick="openLang()">Toutes les langues…</button></section>`}
+{const m=TABS.me;TABS.me=function(){return m.apply(this,arguments)+langCard()}}
+(function(){const st=document.createElement('style');st.textContent='#langBtn{display:none!important}#topLang{background:transparent;border:0;cursor:pointer}';document.head.appendChild(st)})();
 </script>
 </body></html>
