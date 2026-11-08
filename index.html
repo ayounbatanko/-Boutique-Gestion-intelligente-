@@ -237,19 +237,7 @@ function restore(){let f=$("#restoreFile").files[0];if(!f)return toast("Choisiss
 function resetData(){if(!can("config"))return toast("Action non autorisée.");if(confirm("Effacer toutes les données de cette application ? Cette action est irréversible.")){localStorage.removeItem(KEY);localStorage.removeItem(UKEY);db=normalize(structuredClone(seed));save();applyBrand();showSetup();toast("Données réinitialisées.")}}
 
 const KEY="tanko_bama_boutique_v2";
-const seed={settings:{...DEF_SETTINGS,name:"Ma Boutique"},products:[
-{id:1,name:"Riz 25kg",category:"Alimentaire",price:18000,cost:15000,stock:25,threshold:5,emoji:"🍚",barcode:"6123456789012",supplierId:1},
-{id:2,name:"Huile 5L",category:"Alimentaire",price:6500,cost:5000,stock:40,threshold:8,emoji:"🛢️",barcode:"6123456789029",supplierId:1},
-{id:3,name:"Savon Marseille",category:"Hygiène",price:500,cost:300,stock:80,threshold:15,emoji:"🧼",barcode:"6123456789036",supplierId:2},
-{id:4,name:"Lait en poudre 400g",category:"Alimentaire",price:2500,cost:1800,stock:30,threshold:6,emoji:"🥛",barcode:"6123456789043",supplierId:1},
-{id:5,name:"Sucre 1kg",category:"Alimentaire",price:800,cost:550,stock:60,threshold:10,emoji:"🍬",barcode:"6123456789050",supplierId:1},
-{id:6,name:"Eau minérale 1.5L",category:"Boissons",price:400,cost:250,stock:100,threshold:20,emoji:"💧",barcode:"6123456789067",supplierId:3},
-{id:7,name:"Pâtes 500g",category:"Alimentaire",price:600,cost:400,stock:45,threshold:10,emoji:"🍝",barcode:"6123456789074",supplierId:1},
-{id:8,name:"Détergent 1L",category:"Hygiène",price:1200,cost:800,stock:35,threshold:8,emoji:"🧴",barcode:"6123456789081",supplierId:2}],
-suppliers:[
-{id:1,name:"Grossiste Alim. Kouassi",phone:"07 00 11 22 33",address:"Abidjan, Adjamé",notes:"Livraison sous 48h"},
-{id:2,name:"Hygitech Distribution",phone:"05 55 66 77 88",address:"Yamoussoukro",notes:""},
-{id:3,name:"Eaux & Boissons SA",phone:"01 23 45 67 89",address:"Bouaké",notes:"Paiement à 30 jours"}],sales:[],debts:[],customers:[],reservations:[],orders:[],supplyOrders:[],users:[]};
+const seed={settings:{...DEF_SETTINGS,name:"Ma Boutique"},products:[],suppliers:[],sales:[],debts:[],customers:[],reservations:[],orders:[],supplyOrders:[],users:[]};
 let db=load(),page="dashboard",cart=[],filter="Tous";
 function load(){let s=structuredClone(seed),st={};try{st=JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){}return normalize({...s,...st,settings:{...s.settings,...(st.settings||{})}})}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){toast("Stockage plein : faites une sauvegarde et libérez de l'espace.")}}
@@ -609,7 +597,7 @@ const BN=[["dashboard","▦","Accueil"],["pos","＋","Caisse"],["supply","🚚",
 const _sp=setPage;setPage=function(p){_sp(p);$("#bnav").innerHTML=BN.filter(x=>can(x[0])).map(x=>`<button class="${x[0]===page?"on":""}" onclick="setPage('${x[0]}')"><span>${x[1]}</span>${x[2]}</button>`).join("");window.scrollTo(0,0)};
 
 /* ================= CONFIGURATION ABONNEMENT (à personnaliser) ================= */
-const APP_VERSION="2.4.1";
+const APP_VERSION="2.4.2";
 const BILLING={app:"BoutiqueGest",trialDays:30,wa:"",cur:"FCFA",price:"à partir de 10 000 FCFA / mois",
 plans:[[1,"1 mois",10000],[3,"3 mois",27000],[6,"6 mois",51000],[12,"12 mois",96000]],
 pay:[],sup:[],
@@ -1514,5 +1502,17 @@ function partnersCard(){const m=partnersMap(),un=unreadMap(),list=Object.values(
  const rows=list.map(p=>`<tr><td><b>${esc(p.shop||'—')}</b><div class="hint" style="font-size:11px">${esc(p.dev)} · v${esc(p.v||'?')}</div></td><td style="font-size:12px">${(p.users||[]).map(u=>esc(u.n)+' <span class="hint">('+esc((ROLES[u.r]||{}).label||u.r)+')</span>').join('<br>')}</td><td>${partnerStatus(p)}</td><td style="font-size:12px">${new Date(p.seen*1000).toLocaleString(bgLoc())}<br><span class="hint">Créé le ${p.c?new Date(p.c).toLocaleDateString(bgLoc()):'—'}</span></td><td style="white-space:nowrap"><button class="mini" onclick="openChat('${esc(p.dev)}')">💬${un[p.dev]?' ('+un[p.dev]+')':''}</button> <button class="mini" onclick="fillLicDev('${esc(p.dev)}')">✓ Abonnement</button></td></tr>`).join('');
  return `<section class="setting-card wide"><div class="panel-head"><h3>👥 Comptes partenaires (${list.length})</h3><button class="btn light" onclick="partnersPoll(true)">↻ Actualiser</button></div><div class="table-wrap"><table class="data-table"><tr><th>Boutique</th><th>Comptes utilisateurs</th><th>Abonnement</th><th>Dernière connexion</th><th></th></tr>${rows||'<tr><td colspan="5" class="empty">Aucun compte reçu pour le moment.</td></tr>'}</table></div><p class="hint">Un partenaire apparaît dès qu'il ouvre l'application mise à jour avec Internet (et à chaque modification de ses comptes). La liste est conservée sur cet appareil.</p></section>`}
 {const o=TABS.own;TABS.own=function(){return partnersCard()+o.apply(this,arguments)}}
+</script>
+<script>
+/* v2.4.2 : suppression (une seule fois) des exemples d'origine non modifiés */
+(function(){try{if(LS.rg_demo_clean==='1')return;
+ const P=[["Riz 25kg","6123456789012",18000,15000,25],["Huile 5L","6123456789029",6500,5000,40],["Savon Marseille","6123456789036",500,300,80],["Lait en poudre 400g","6123456789043",2500,1800,30],["Sucre 1kg","6123456789050",800,550,60],["Eau minérale 1.5L","6123456789067",400,250,100],["Pâtes 500g","6123456789074",600,400,45],["Détergent 1L","6123456789081",1200,800,35]];
+ const S=["Grossiste Alim. Kouassi","Hygitech Distribution","Eaux & Boissons SA"];
+ const before=(db.products||[]).length+(db.suppliers||[]).length;
+ db.products=(db.products||[]).filter(x=>!P.some(q=>x.name===q[0]&&String(x.barcode)===q[1]&&+x.price===q[2]&&+x.cost===q[3]&&+x.stock===q[4]));
+ const ids=new Set(db.products.map(x=>x.supplierId));
+ db.suppliers=(db.suppliers||[]).filter(x=>!(S.includes(x.name)&&!ids.has(x.id)&&!(db.supplyOrders||[]).some(o=>o.supplierId===x.id)));
+ LS.rg_demo_clean='1';if(before!==db.products.length+db.suppliers.length){save()}
+}catch(e){}})();
 </script>
 </body></html>
