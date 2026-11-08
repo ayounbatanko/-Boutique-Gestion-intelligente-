@@ -32,7 +32,7 @@ html{-webkit-tap-highlight-color:transparent}body{overscroll-behavior-y:contain;
 [data-theme=dark] .bottomnav{background:#16201b}[data-theme=dark] .bottomnav button.on{color:var(--lime);background:#1f2c26}
 #subBar{padding:9px 34px;font-size:12px;font-weight:600;background:#fff7e0;color:#7a5a10;border-bottom:1px solid #f0dfae;cursor:pointer}#subBar.warn{background:#fff0ef;color:#a33;border-color:#f3c9c6}@media(max-width:760px){#subBar{padding:9px 15px}}#modalWrap{z-index:70}input[type=file]{font-size:13px!important;width:100%;max-width:100%}.modal-actions{flex-wrap:wrap}.code{width:100%;font:11px monospace;word-break:break-all}
 /* Masquer le badge Netlify s'il est injecté par l'hôte */
-iframe[id^="netlify"], a[href*="netlify.com/experimental"], div:has(> a[href*="netlify.com"]), body > div:last-child:not(.app-shell):not(.modal-wrap) {
+iframe[id^="netlify"], a[href*="netlify.com/experimental"], div:has(> a[href*="netlify.com"]) {
   display: none !important;
   opacity: 0 !important;
   pointer-events: none !important;
@@ -609,7 +609,7 @@ const BN=[["dashboard","▦","Accueil"],["pos","＋","Caisse"],["supply","🚚",
 const _sp=setPage;setPage=function(p){_sp(p);$("#bnav").innerHTML=BN.filter(x=>can(x[0])).map(x=>`<button class="${x[0]===page?"on":""}" onclick="setPage('${x[0]}')"><span>${x[1]}</span>${x[2]}</button>`).join("");window.scrollTo(0,0)};
 
 /* ================= CONFIGURATION ABONNEMENT (à personnaliser) ================= */
-const APP_VERSION="2.3.5";
+const APP_VERSION="2.4.1";
 const BILLING={app:"BoutiqueGest",trialDays:30,wa:"",cur:"FCFA",price:"à partir de 10 000 FCFA / mois",
 plans:[[1,"1 mois",10000],[3,"3 mois",27000],[6,"6 mois",51000],[12,"12 mois",96000]],
 pay:[],sup:[],
@@ -647,10 +647,10 @@ if(s.s==="trial"){b.hidden=false;b.className=s.days<=7?"warn":"";b.textContent=`
 if(s.s==="pro"&&s.days<=7){b.hidden=false;b.className="warn";b.textContent=`⚠ Votre abonnement expire dans ${s.days} jour(s) — Renouveler →`}
 if(s.s==="expired"&&(!w.querySelector("#licCode")||w.dataset.p!==(LS.rg_pending||"")+(LS.rg_rej||"")))w.dataset.p=(LS.rg_pending||"")+(LS.rg_rej||""),w.innerHTML=`<section class="modal" style="text-align:center"><h2 style="margin:0 0 6px">${LS.rg_lic?"Votre abonnement a expiré":"Votre essai gratuit est terminé"}</h2><p class="hint">Passez à la version Pro pour continuer. Vos données sont conservées sur cet appareil.</p>${subBox()}<button class="btn light" style="margin-top:14px" onclick="backup()">⇩ Télécharger mes données</button></section>`}
 async function activate(){let c=($("#licCode").value||"").replace(/\s+/g,""),L=await verifyLic(c);if(!L)return toast("Code invalide.");if(L.d!==devId())return toast("Ce code est lié à un autre appareil.");if(L.e<ymd(new Date()))return toast("Ce code est expiré.");LS.rg_lic=c;if(L.i)LS.rg_lic_start=L.i;else LS.rg_lic_start=ymd(new Date());delete LS.rg_pending;delete LS.rg_rej;let w=$("#payWrap");w.innerHTML="";await checkSub();render();toast("Abonnement Pro activé du "+(L.i||LS.rg_lic_start)+" au "+L.e+" 🎉")}
-TABS.sub=()=>`<section class="setting-card wide" style="max-width:520px"><h3>💎 Abonnement</h3>${subBox()}${isOwnerUser()?`<p class="hint" style="margin-top:16px"><a href="#" onclick="ownerImport();return false">Accès propriétaire</a></p>`:""}</section>`;
+TABS.sub=()=>`<section class="setting-card wide" style="max-width:520px"><h3>💎 Abonnement</h3>${subBox()}${curUser().role==="admin"?`<p class="hint" style="margin-top:16px"><a href="#" onclick="ownerImport();return false">Accès propriétaire</a></p>`:""}</section>`;
 function showPrivacy(){modal("Politique de confidentialité",`<div class="hint" style="font-size:12px"><p><b>Aucune donnée collectée.</b> Les informations saisies (produits, ventes, clients, utilisateurs) sont stockées uniquement sur votre appareil. Rien n'est envoyé à un serveur ni à des tiers, aucune publicité, aucun outil d'analyse.</p><p><b>Abonnement.</b> Votre identifiant appareil (code aléatoire) et votre code d'abonnement sont conservés localement. Ils servent uniquement à vérifier votre licence.</p><p><b>Confirmation de paiement.</b> Lorsque vous confirmez un paiement, votre nom, identifiant appareil, référence et capture du reçu sont envoyés au propriétaire de l'application via le service de notification ntfy.sh, uniquement pour valider votre abonnement.</p><p><b>Sauvegarde.</b> Exportez régulièrement vos données (Paramètres > Données). Désinstaller l'application ou effacer ses données les supprime définitivement.</p></div>`,"Fermer",closeModal)}
 /* ---------- Espace propriétaire ---------- */
-let LASTCODE="";const isOwnerUser=()=>{let u=curUser();return u.role==="admin"&&u.name.trim().replace(/\s+/g," ").toLowerCase()===BILLING.ownerName.toLowerCase()};
+let LASTCODE="";const nrmName=x=>String(x||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim().replace(/\s+/g," ").toLowerCase();const isOwnerUser=()=>{let u=curUser();return u.role==="admin"&&(!!LS.rg_owner_priv||nrmName(u.name)===nrmName(BILLING.ownerName))};
 function ownerImport(){
  modal("Accès propriétaire",`<p class="hint">Sélectionnez le fichier <b>CLE_PRIVEE_PROPRIETAIRE.json</b> fourni dans le dossier BoutiqueGest-Complet, ou collez son contenu. Ne transmettez jamais ce fichier aux partenaires.</p>
  <div class="form-group"><textarea id="ownT" rows="4" class="code" placeholder="Collez ici le contenu JSON de la clé privée…"></textarea></div>
@@ -783,7 +783,7 @@ async function pollLic(){
 let licPollTimer=null;
 function startLicPolling(){
  if(licPollTimer)return;
- licPollTimer=setInterval(()=>{if(LS.rg_pending)pollLic()},8000);
+ licPollTimer=setInterval(()=>{if(LS.rg_pending&&!document.hidden)pollLic()},15000);
 }
 /* ---------- Validation côté propriétaire ---------- */
 let REQS=[],lastN=-1;const doneIds=()=>JSON.parse(LS.rg_done||"[]");
@@ -1124,7 +1124,7 @@ function showUpdateBanner(ver,notes){
 }
 // Partner: listen for remote license changes even when already Pro
 async function pollLicPush(){
-  if(LS.rg_owner_priv)return;
+  if(LS.rg_owner_priv||document.hidden)return;
   try{
     const since=+(LS.rg_lic_poll_since||0);
     const response=await fetch(`${BILLING.ntfy}/rglic-${devId()}/json?poll=1&since=all`,{cache:"no-store"});
@@ -1155,14 +1155,14 @@ async function pollLicPush(){
   }catch(e){}
 }
 
-if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>r.update()).catch(()=>{}));
 checkSub();setInterval(checkSub,6e4);startLicPolling();if(LS.rg_pending)pollLic();
 if(LS.rg_owner_priv)startOwnerPolling();
-checkAppUpdate();setInterval(checkAppUpdate,60000);
-setInterval(pollLicPush,12000);
+checkAppUpdate();setInterval(checkAppUpdate,600000);
+setInterval(pollLicPush,30000);
 document.addEventListener("visibilitychange",()=>{if(!document.hidden){checkSub();if(LS.rg_pending)pollLic();if(LS.rg_owner_priv)loadReqs();checkAppUpdate();pollLicPush()}});
 // Partner: also listen for chat pings lightly
-setInterval(async()=>{if(!LS.rg_owner_priv){try{const r=await pullChat(devId());if(r&&r.added)toast("💬 Nouveau message du support")}catch(e){}}},20000);
+setInterval(async()=>{if(!LS.rg_owner_priv&&!document.hidden){try{const r=await pullChat(devId());if(r&&r.added)toast("💬 Nouveau message du support")}catch(e){}}},45000);
 
 
 </script>
@@ -1265,7 +1265,7 @@ function openLang(){closeLang();const o=document.createElement('div');o.id='lang
  draw();document.getElementById('langQ').oninput=e=>draw(e.target.value)}
 (function(){const st=document.createElement('style');st.textContent='.goog-te-banner-frame,iframe.skiptranslate,#goog-gt-tt,.goog-te-balloon-frame{display:none!important}body{top:0!important}.goog-text-highlight{background:none!important;box-shadow:none!important}';document.head.appendChild(st);
  const b=document.createElement('button');b.id='langBtn';b.className='notranslate';b.textContent='🌐';b.setAttribute('aria-label','Langue');b.style.cssText='position:fixed;left:12px;bottom:84px;z-index:9990;width:44px;height:44px;border-radius:50%;border:0;background:#1a4a3a;color:#fff;font-size:20px;box-shadow:0 2px 8px rgba(0,0,0,.3)';b.onclick=openLang;document.body.appendChild(b);
- if(LS.bg_lang&&LS.bg_lang!=='fr')window.addEventListener('load',()=>applyLang(LS.bg_lang))})();
+ if(LS.bg_lang&&LS.bg_lang!=='fr')window.addEventListener('load',()=>{if(LS.bg_trmode==='gt')applyLang(LS.bg_lang)})})();
 /* ----- v2.3.1 : moyens de paiement / support vides par défaut, envoi de paiement plus robuste ----- */
 function supHref(x){const v=String(x.value||'');switch(x.type){case 'whatsapp':return 'https://wa.me/'+v.replace(/\D/g,'');case 'tel':return 'tel:'+v.replace(/[^\d+]/g,'');case 'telegram':return /^https?:/i.test(v)?v:'https://t.me/'+v.replace(/^@/,'');case 'email':return 'mailto:'+v;default:return /^https?:\/\//i.test(v)?v:'https://'+v}}
 function supButtons(){const l=BILLING.sup||[];if(!l.length)return '';const ic={whatsapp:'💬',tel:'📞',telegram:'✈️',email:'✉️',link:'🔗'},nm={whatsapp:'WhatsApp',tel:'Appeler',telegram:'Telegram',email:'Email',link:'Lien'};
@@ -1290,11 +1290,12 @@ async function sendPay(){
 </script>
 <script>
 /* ===== v2.3.5 : envoi fiable (ntfy), validation propriétaire, blocage des ventes à l'expiration, bouton langue ===== */
-async function ntfyPost(topic,body,meta,method){
+async function ntfyPost(topic,body,meta,method){try{return await ntfyPost1(topic,body,meta,method)}catch(e){if(e&&e.rate){await new Promise(r=>setTimeout(r,3500));return ntfyPost1(topic,body,meta,method)}throw e}}
+async function ntfyPost1(topic,body,meta,method){
  meta=meta||{};method=method||'POST';
  const base=BILLING.ntfy+'/'+topic,A=v=>ascii(v),isBlob=typeof body!=='string';
  const T=(url,opt,ms)=>{const c=new AbortController(),t=setTimeout(()=>c.abort(),ms);return fetch(url,Object.assign({signal:c.signal,cache:'no-store'},opt)).finally(()=>clearTimeout(t))};
- const parse=async r=>{if(r.ok)return await r.json().catch(()=>({}));let t='';try{t=(await r.json()).error||''}catch(e){}if(r.status===429)t="limite d'envois atteinte, réessayez dans quelques minutes";throw new Error(t||('HTTP '+r.status))};
+ const parse=async r=>{if(r.ok)return await r.json().catch(()=>({}));let t='';try{t=(await r.json()).error||''}catch(e){}if(r.status===429)t="limite d'envois atteinte, réessayez dans quelques minutes";{const er=new Error(t||('HTTP '+r.status));er.rate=r.status===429;throw er}};
  const hdr=()=>{const h={};if(meta.title)h.Title=A(meta.title);if(meta.tags)h.Tags=meta.tags;if(meta.priority)h.Priority=meta.priority;if(meta.message)h['X-Message']=A(meta.message);if(meta.filename)h.Filename=A(meta.filename);return h};
  const qs=()=>{const q=new URLSearchParams();if(meta.title)q.set('title',A(meta.title));if(meta.tags)q.set('tags',meta.tags);if(meta.priority)q.set('priority',meta.priority);return q.toString()};
  const net=e=>e&&(e instanceof TypeError||e.name==='AbortError');
@@ -1325,5 +1326,193 @@ function langCard(){const c=LS.bg_lang||'fr',q=[['fr','Français'],['en','Englis
  return `<section class="setting-card notranslate"><h3>🌐 Langue / Language</h3><p class="hint">Langue actuelle : <b>${esc(langName(c))}</b> — la traduction automatique nécessite Internet.</p><div class="seg">${q.map(([k,n])=>`<button class="${c===k?'on':''}" onclick="setLang('${k}')">${n}</button>`).join('')}</div><button class="btn light" style="margin-top:12px" onclick="openLang()">Toutes les langues…</button></section>`}
 {const m=TABS.me;TABS.me=function(){return m.apply(this,arguments)+langCard()}}
 (function(){const st=document.createElement('style');st.textContent='#langBtn{display:none!important}#topLang{background:transparent;border:0;cursor:pointer}';document.head.appendChild(st)})();
+</script>
+<script>
+/* ===== v2.3.6 : messagerie corrigée, accès propriétaire, traducteur intégré, mise à jour forcée ===== */
+let CHATERR='';
+const normDev=v=>String(v||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+const isOwnerMode=()=>!!LS.rg_owner_priv&&isOwnerUser();
+const unreadMap=()=>{try{return JSON.parse(LS.rg_unread||'{}')}catch(e){return {}}};
+const setUnread=o=>{LS.rg_unread=JSON.stringify(o)};
+function ownerDevs(){const m={};try{JSON.parse(LS.rg_clients||'[]').forEach(c=>m[c.dev]=c.name)}catch(e){}
+ (typeof REQS!=='undefined'&&REQS||[]).forEach(r=>{if(r.dev&&!m[r.dev])m[r.dev]=r.name});
+ Object.keys(LS).filter(k=>k.indexOf('rg_chat_')===0).forEach(k=>{const d=k.slice(8);if(d.length===10&&!m[d]){const l=chatStore(d).filter(x=>x.from==='partner').pop();m[d]=l?l.name:d}});return m}
+async function pullChat(dev){
+ try{
+  const r=await fetch(`${BILLING.ntfy}/${chatTopic(dev)}/json?poll=1&since=all`,{cache:'no-store'});
+  if(!r.ok){CHATERR=r.status===429?'trop de requêtes, nouvel essai automatique':'serveur de messagerie indisponible (HTTP '+r.status+')';return {msgs:chatStore(dev),added:0}}
+  CHATERR='';
+  const ev=(await r.text()).trim().split(/\r?\n/).filter(Boolean).map(l=>{try{return JSON.parse(l)}catch(e){return null}}).filter(Boolean);
+  let local=chatStore(dev),known=new Set(local.map(m=>m.id)),added=0;
+  for(const e of ev.filter(e=>e.event==='message')){
+   const m=parseChatMsg(e.message);if(!m||known.has(e.id))continue;
+   const o={id:e.id,time:e.time,from:m.from,name:m.name,text:m.text};
+   if(e.attachment&&e.attachment.url){o.att={name:e.attachment.name,type:e.attachment.type||'',size:e.attachment.size||0,url:e.attachment.url,exp:e.attachment.expires||0};
+    fetch(o.att.url).then(x=>x.ok?x.blob():null).then(b=>b&&idbPut(e.id,b)).catch(()=>{})}
+   local.push(o);known.add(e.id);added++}
+  local.sort((a,b)=>a.time-b.time);chatSave(dev,local);return {msgs:local,added}
+ }catch(e){CHATERR='connexion impossible, vérifiez Internet';return {msgs:chatStore(dev),added:0}}
+}
+async function refreshChatUI(){
+ if(!chatDev)return;const box=$('#chatBox');if(!box)return;
+ const {msgs}=await pullChat(chatDev),me=isOwnerMode()?'owner':'partner';
+ const st=$('#chatStat');if(st)st.innerHTML=CHATERR?`<span style="color:var(--red)">⚠ ${esc(CHATERR)}</span>`:'<span style="color:var(--green)">● Connecté</span>';
+ if(box.dataset.n===String(msgs.length))return;box.dataset.n=msgs.length;
+ box.innerHTML=msgs.length?msgs.map(m=>{const mine=m.from===me;
+  return `<div style="margin:6px 0;display:flex;justify-content:${mine?'flex-end':'flex-start'}"><div style="max-width:85%;padding:8px 10px;border-radius:12px;background:${mine?'#d7eb9c':'#fff'};color:#18231f;border:1px solid #e0e4dc;text-align:left"><div style="font-size:11px;opacity:.7;margin-bottom:2px">${esc(m.name||m.from)} · ${new Date(m.time*1000).toLocaleString(bgLoc())}</div>${m.text&&m.text!=='(fichier)'?`<div style="font-size:14px;white-space:pre-wrap">${esc(m.text)}</div>`:''}${attHtml(m)}</div></div>`}).join(''):`<p class="empty">Aucun message pour l'instant. Écrivez le premier.</p>`;
+ box.scrollTop=box.scrollHeight;hydrateAtt(box)
+}
+function ownerPicker(){const m=ownerDevs(),un=unreadMap(),ids=Object.keys(m);
+ modal('Choisir un partenaire',(ids.length?`<div class="table-wrap"><table class="data-table"><tr><th>Partenaire</th><th>Appareil</th><th></th></tr>${ids.map(d=>`<tr><td><b>${esc(m[d])}</b></td><td>${esc(d)}</td><td><button class="mini" onclick="closeModal();openChat('${esc(d)}')">💬 Ouvrir${un[d]?' ('+un[d]+')':''}</button></td></tr>`).join('')}</table></div>`:'<p class="hint">Aucun partenaire connu pour le moment.</p>')+`<div class="form-group" style="margin-top:12px"><label>Ou saisir un identifiant appareil</label><div style="display:flex;gap:8px"><input id="chatDevIn" class="field" placeholder="K7QM-9XD2-A4" autocapitalize="characters" style="flex:1"><button class="btn primary" onclick="openChat(document.getElementById('chatDevIn').value)">Ouvrir</button></div></div>`,'Fermer',closeModal)}
+async function openChat(dev){
+ const owner=isOwnerMode();
+ if(!dev){if(owner)return ownerPicker();dev=devId()}
+ dev=normDev(dev);if(dev.length!==10)return toast('Identifiant appareil invalide (10 caractères).');
+ const un=unreadMap();if(un[dev]){delete un[dev];setUnread(un)}
+ const nm=owner?(ownerDevs()[dev]||dev):'';
+ modal(owner?`💬 Chat — ${esc(nm)}`:`💬 Support ${esc(BILLING.app)}`,`<div id="chatBox" style="max-height:320px;overflow:auto;background:#f4f6f3;color:#18231f;border-radius:10px;padding:10px;text-align:left;margin-bottom:10px"><p class="hint">Chargement…</p></div>
+ <div id="chatAtt" class="hint" style="margin-bottom:6px"></div><div style="display:flex;gap:8px"><button class="btn light" type="button" onclick="document.getElementById('chatFile').click()" title="Joindre un fichier ou une image">📎</button><input type="file" id="chatFile" hidden onchange="pickChatFile(this)"><input id="chatInput" class="field" placeholder="Votre message…" style="flex:1" maxlength="500" onkeydown="if(event.key==='Enter'){event.preventDefault();submitChat()}"><button class="btn primary" onclick="submitChat()">Envoyer</button></div>
+ <div id="chatStat" class="hint" style="margin-top:8px"></div><p class="hint" style="margin-top:4px">Fichiers et images : 5 Mo max. Actualisation automatique.</p>`,'Fermer',()=>{stopChatPoll();closeModal()});
+ const ms=$('#modalSubmit');if(ms)ms.style.display='none';
+ const cn=document.querySelector('#modal .modal-actions .btn.light');if(cn)cn.onclick=()=>{stopChatPoll();closeModal()};
+ stopChatPoll();chatDev=dev;chatFileSel=null;   /* BUG corrigé : stopChatPoll() remettait chatDev à null après l'ouverture, l'envoi ne partait donc jamais */
+ await refreshChatUI();
+ chatPoll=setInterval(()=>{if(!document.hidden)refreshChatUI()},10000);
+}
+/* Propriétaire : nouveaux messages de tous les partenaires */
+async function ownerChatPoll(){
+ if(!isOwnerMode()||document.hidden)return;
+ const devs=Object.keys(ownerDevs());if(!devs.length)return;
+ for(let i=0;i<devs.length;i+=30){const part=devs.slice(i,i+30);
+  try{const r=await fetch(`${BILLING.ntfy}/${part.map(chatTopic).join(',')}/json?poll=1&since=all`,{cache:'no-store'});if(!r.ok)continue;
+   const evs=(await r.text()).trim().split(/\r?\n/).filter(Boolean).map(l=>{try{return JSON.parse(l)}catch(e){return null}}).filter(e=>e&&e.event==='message');
+   let un=unreadMap(),n=0,who='';
+   for(const e of evs){const dev=String(e.topic||'').replace('rgchat-',''),m=parseChatMsg(e.message);if(!m||m.from!=='partner'||dev.length!==10)continue;
+    let local=chatStore(dev);if(local.some(x=>x.id===e.id))continue;
+    const o={id:e.id,time:e.time,from:m.from,name:m.name,text:m.text};
+    if(e.attachment&&e.attachment.url){o.att={name:e.attachment.name,type:e.attachment.type||'',size:e.attachment.size||0,url:e.attachment.url,exp:e.attachment.expires||0};fetch(o.att.url).then(x=>x.ok?x.blob():null).then(b=>b&&idbPut(e.id,b)).catch(()=>{})}
+    local.push(o);local.sort((a,b)=>a.time-b.time);chatSave(dev,local);
+    if(chatDev!==dev){un[dev]=(un[dev]||0)+1;n++;who=m.name}}
+   if(n){setUnread(un);toast('💬 Nouveau message de '+who);bgNotify('BoutiqueGest - Messagerie',n+' nouveau(x) message(s) de '+who,'','bg-chat')}
+  }catch(e){}}
+}
+setInterval(ownerChatPoll,30000);setTimeout(ownerChatPoll,4000);
+
+/* ===== Traducteur intégré (sans widget Google, fonctionne dans les applications installées) ===== */
+const TR={lang:null,cache:{},pending:new Set(),busy:false,obs:null,applying:false,timer:null};
+const trKey=l=>'bg_tr_'+l;
+function trSave(){try{const j=JSON.stringify(TR.cache);if(j.length<2.5e6)LS[trKey(TR.lang)]=j}catch(e){}}
+const trWant=t=>t.length>1&&t.length<400&&/[A-Za-zÀ-ÿ]/.test(t);
+async function trFetch(lines,tl){
+ const u='https://translate.googleapis.com/translate_a/single?client=gtx&sl=fr&dt=t&tl='+encodeURIComponent(tl)+'&q='+encodeURIComponent(lines.join('\n'));
+ const r=await fetch(u,{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);
+ const d=await r.json();return (d[0]||[]).map(x=>x[0]||'').join('').split('\n')}
+async function trPending(){
+ if(TR.busy)return;TR.busy=true;
+ try{while(TR.pending.size){
+  const items=[...TR.pending].filter(t=>!(t in TR.cache));TR.pending.clear();
+  const batches=[];let b=[],len=0;for(const t of items){if(len+t.length>700&&b.length){batches.push(b);b=[];len=0}b.push(t);len+=t.length+1}if(b.length)batches.push(b);
+  for(let i=0;i<batches.length;i+=3){
+   await Promise.all(batches.slice(i,i+3).map(async bt=>{
+    try{const res=await trFetch(bt,TR.lang);
+     if(res.length===bt.length)bt.forEach((t,k)=>TR.cache[t]=(res[k]||'').trim()||t);
+     else for(const t of bt){try{TR.cache[t]=(await trFetch([t],TR.lang)).join(' ').trim()||t}catch(e){}}
+    }catch(e){}}));
+   trSave();trScan()}
+ }}finally{TR.busy=false}
+}
+function trScan(){
+ if(!TR.lang||TR.lang==='fr'||!document.body)return;
+ TR.applying=true;
+ try{
+  const w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,{acceptNode:n=>{const p=n.parentElement;return(!p||p.closest('.notranslate,[translate="no"],script,style,textarea'))?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT}});
+  const nodes=[];while(w.nextNode())nodes.push(w.currentNode);
+  for(const n of nodes){const raw=n.nodeValue;if(n.__tr===raw)continue;const key=raw.replace(/\s+/g,' ').trim();if(!trWant(key))continue;
+   if(key in TR.cache){const t=TR.cache[key];if(t&&t!==key){const p=n.parentElement;if(p&&p.tagName==='OPTION'&&!p.hasAttribute('value'))p.setAttribute('value',key);
+     const nv=raw.match(/^\s*/)[0]+t+raw.match(/\s*$/)[0];n.nodeValue=nv;n.__tr=nv}}
+   else TR.pending.add(key)}
+  document.querySelectorAll('[placeholder]:not(.notranslate)').forEach(el=>{const v=el.getAttribute('placeholder');if(el.__trp===v)return;const k=(v||'').trim();if(!trWant(k))return;
+   if(k in TR.cache){const t=TR.cache[k];if(t){el.setAttribute('placeholder',t);el.__trp=t}}else TR.pending.add(k)});
+ }catch(e){}
+ TR.applying=false;if(TR.obs)TR.obs.takeRecords();
+ if(TR.pending.size)trPending();
+}
+function trStart(l){
+ TR.lang=l;try{TR.cache=JSON.parse(LS[trKey(l)]||'{}')}catch(e){TR.cache={}}
+ document.documentElement.dir=BG_RTL.includes(l)?'rtl':'ltr';
+ TR.obs=new MutationObserver(()=>{if(TR.applying)return;clearTimeout(TR.timer);TR.timer=setTimeout(trScan,150)});
+ TR.obs.observe(document.body,{childList:true,subtree:true,characterData:true});trScan()}
+async function setLang(c){
+ closeLang();
+ if(c==='fr'){LS.bg_lang='fr';LS.bg_loc='fr';delete LS.bg_trmode;const x='googtrans=;path=/;expires=Thu, 01 Jan 1970 00:00:00 GMT';document.cookie=x;document.cookie=x+';domain='+location.hostname;location.reload();return}
+ toast('Langue / Language …');
+ let mode='own';try{await trFetch(['Bonjour'],c)}catch(e){mode='gt'}
+ LS.bg_lang=c;LS.bg_loc=({iw:'he',jw:'jv'})[c]||c;LS.bg_trmode=mode;location.reload()}
+if(LS.bg_lang&&LS.bg_lang!=='fr'&&LS.bg_trmode!=='gt'){const go=()=>trStart(LS.bg_lang);document.readyState==='loading'?document.addEventListener('DOMContentLoaded',go):setTimeout(go,50)}
+/* Bouton langue accessible aussi sur les écrans de verrouillage / expiration */
+(function(){const b=document.createElement('button');b.id='lockLang';b.className='notranslate';b.textContent='🌐';b.setAttribute('aria-label','Langue');b.onclick=openLang;
+ b.style.cssText='position:fixed;top:calc(10px + env(safe-area-inset-top));right:12px;z-index:100001;width:42px;height:42px;border-radius:50%;border:0;background:#c8df75;color:#102a25;font-size:20px;display:none';document.body.appendChild(b);
+ setInterval(()=>{const a=document.getElementById('lockWrap'),p=document.getElementById('payWrap');b.style.display=((a&&!a.hidden)||(p&&!p.hidden))&&!document.getElementById('langOv')?'block':'none'},400)})();
+/* Mise à jour forcée : si une version plus récente est en ligne, on vide le cache et on recharge */
+async function bgSelfUpdate(){try{if(location.protocol==='file:')return;const r=await fetch(location.pathname+(location.search||''),{cache:'no-store'});if(!r.ok)return;const t=await r.text(),m=t.match(/const APP_VERSION="([^"]+)"/);
+ if(!m||m[1]===APP_VERSION||LS.rg_upd_try===m[1])return;LS.rg_upd_try=m[1];
+ if(navigator.serviceWorker){const rs=await navigator.serviceWorker.getRegistrations();await Promise.all(rs.map(x=>x.unregister()))}
+ if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}location.reload()}catch(e){}}
+setTimeout(bgSelfUpdate,3000);
+</script>
+<script>
+/* v2.3.7 : sauvegarde / transfert de la clé propriétaire */
+function exportOwnerKey(){if(!LS.rg_owner_priv)return toast('Aucune clé sur cet appareil.');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([LS.rg_owner_priv],{type:'application/json'}));a.download='CLE_PRIVEE_PROPRIETAIRE.json';document.body.appendChild(a);a.click();a.remove();toast('Clé téléchargée. Gardez-la en lieu sûr.')}
+function copyOwnerKey(){if(!LS.rg_owner_priv)return toast('Aucune clé sur cet appareil.');navigator.clipboard.writeText(LS.rg_owner_priv).then(()=>toast('Clé copiée. Collez-la dans « Accès propriétaire » sur l\'autre appareil.')).catch(()=>toast('Copie impossible : utilisez le téléchargement.'))}
+function showOwnerKey(){const t=document.getElementById('ownKeyTxt');if(!t)return;t.hidden=false;t.value=LS.rg_owner_priv||'';t.focus();t.select();try{t.setSelectionRange(0,99999)}catch(e){}toast('Clé affichée : appuyez longuement dans la zone, puis « Tout sélectionner » et « Copier ».')}
+function shareOwnerKey(){if(!LS.rg_owner_priv)return toast('Aucune clé sur cet appareil.');if(navigator.share)navigator.share({title:'Clé propriétaire',text:LS.rg_owner_priv}).catch(()=>{});else showOwnerKey()}
+function keyCard(){return `<section class="setting-card wide"><h3>🔐 Sauvegarde de ma clé propriétaire</h3><p class="hint">Cette clé permet de valider les abonnements. Elle n'existe que sur les appareils où vous l'avez importée. Pour l'importer sur un autre appareil : Paramètres > Abonnement > Accès propriétaire. Ne la donnez jamais à un partenaire.</p><div class="toolbar" style="flex-wrap:wrap;gap:8px"><button class="btn primary" onclick="showOwnerKey()">👁 Afficher la clé</button><button class="btn light" onclick="copyOwnerKey()">Copier</button><button class="btn light" onclick="shareOwnerKey()">Partager (WhatsApp, e-mail…)</button><button class="btn light" onclick="exportOwnerKey()">⇩ Télécharger</button></div><textarea id="ownKeyTxt" class="code" rows="6" readonly hidden style="margin-top:10px;width:100%" onclick="this.select()"></textarea><p class="hint">Astuce : « Partager » puis envoyez-vous la clé à vous-même (messagerie personnelle), collez-la ensuite dans « Accès propriétaire » de l'application installée.</p></section>`}
+{const o=TABS.own;TABS.own=function(){return o.apply(this,arguments)+keyCard()}}
+</script>
+<script>
+/* ===== v2.4.0 : annuaire des comptes partenaires (visible par le propriétaire) ===== */
+const REG_TOPIC=()=>'rgreg-'+BILLING.topic;
+function regSig(){try{return JSON.stringify([db.settings.name,(db.users||[]).map(u=>[u.name,u.role]),SUB&&SUB.s,SUB&&SUB.exp,APP_VERSION])}catch(e){return ''}}
+async function announce(force){
+ try{
+  if(LS.rg_owner_priv||!db.settings.setup)return;
+  if(!force&&Date.now()-(+LS.rg_ann_t||0)<3*36e5)return;
+  if(!LS.rg_first)LS.rg_first=String(Date.now());
+  const o={k:'REG',dev:devId(),shop:ascii(db.settings.name||'').slice(0,50),users:(db.users||[]).slice(0,12).map(u=>({n:ascii(u.name||'').slice(0,30),r:u.role})),s:(SUB&&SUB.s)||'',e:(SUB&&SUB.exp)||'',d:(SUB&&SUB.days)||0,v:APP_VERSION,c:+LS.rg_first};
+  await ntfyPost(REG_TOPIC(),JSON.stringify(o),{title:'Compte partenaire - '+(o.shop||o.dev),tags:'bust_in_silhouette'});
+  LS.rg_ann_t=String(Date.now());LS.rg_ann_sig=regSig();
+ }catch(e){}
+}
+setTimeout(()=>announce(true),6000);setInterval(()=>announce(),6e5);
+setInterval(()=>{if(LS.rg_ann_sig!==regSig()&&!document.hidden)announce(true)},20000);
+
+const partnersMap=()=>{try{return JSON.parse(LS.rg_partners||'{}')}catch(e){return {}}};
+async function partnersPoll(manual){
+ if(!isOwnerMode())return;
+ try{
+  const r=await fetch(`${BILLING.ntfy}/${REG_TOPIC()}/json?poll=1&since=all`,{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);
+  const m=partnersMap(),had=Object.keys(m).length;let ch=0,fresh=[];
+  (await r.text()).trim().split(/\r?\n/).filter(Boolean).forEach(l=>{try{const e=JSON.parse(l);if(e.event!=='message')return;const o=JSON.parse(e.message);if(o.k!=='REG'||!/^[A-Z0-9]{10}$/.test(o.dev))return;
+   const p=m[o.dev];if(!p||e.time>p.seen){if(!p)fresh.push(o.shop||o.dev);m[o.dev]=Object.assign({},o,{seen:e.time});ch++}}catch(x){}});
+  LS.rg_partners=JSON.stringify(m);
+  if(had&&fresh.length)toast('🆕 Nouveau partenaire : '+fresh[0]+(fresh.length>1?' (+'+(fresh.length-1)+')':''));
+  if(manual)toast(ch?ch+' compte(s) mis à jour.':'Liste déjà à jour.');
+  const a=document.activeElement;if(ch&&page==='settings'&&setTab==='own'&&!(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)))render();
+ }catch(e){if(manual)toast('Actualisation impossible : '+(e.message||'réseau'))}
+}
+setInterval(()=>{if(!document.hidden)partnersPoll()},30000);setTimeout(partnersPoll,3000);
+
+function ownerDevs(){const m={};try{JSON.parse(LS.rg_clients||'[]').forEach(c=>m[c.dev]=c.name)}catch(e){}
+ Object.values(partnersMap()).forEach(p=>{if(!m[p.dev])m[p.dev]=p.shop||p.dev});
+ (typeof REQS!=='undefined'&&REQS||[]).forEach(r=>{if(r.dev&&!m[r.dev])m[r.dev]=r.name});
+ Object.keys(LS).filter(k=>k.indexOf('rg_chat_')===0).forEach(k=>{const d=k.slice(8);if(d.length===10&&!m[d]){const l=chatStore(d).filter(x=>x.from==='partner').pop();m[d]=l?l.name:d}});return m}
+function fillLicDev(dev){const p=partnersMap()[dev]||{};const n=document.getElementById('lcName'),d=document.getElementById('lcDev');if(n)n.value=p.shop||dev;if(d)d.value=dev;window.scrollTo(0,0);toast('Appareil sélectionné : choisissez la durée puis générez.')}
+function partnerStatus(p){if(p.s==='pro'){const ok=p.e&&p.e>=ymd(new Date());return ok?`<span class="badge" style="background:#d7eb9c;color:#18231f">Pro jusqu'au ${esc(p.e)}</span>`:`<span class="badge" style="background:#f6c9c9;color:#7a1f1f">Expiré (${esc(p.e)})</span>`}
+ if(p.s==='trial')return `<span class="badge" style="background:#ffe9b0;color:#5a4300">Essai (${+p.d||0} j)</span>`;
+ if(p.s==='expired')return `<span class="badge" style="background:#f6c9c9;color:#7a1f1f">Expiré</span>`;return esc(p.s||'—')}
+function partnersCard(){const m=partnersMap(),un=unreadMap(),list=Object.values(m).sort((a,b)=>b.seen-a.seen);
+ const rows=list.map(p=>`<tr><td><b>${esc(p.shop||'—')}</b><div class="hint" style="font-size:11px">${esc(p.dev)} · v${esc(p.v||'?')}</div></td><td style="font-size:12px">${(p.users||[]).map(u=>esc(u.n)+' <span class="hint">('+esc((ROLES[u.r]||{}).label||u.r)+')</span>').join('<br>')}</td><td>${partnerStatus(p)}</td><td style="font-size:12px">${new Date(p.seen*1000).toLocaleString(bgLoc())}<br><span class="hint">Créé le ${p.c?new Date(p.c).toLocaleDateString(bgLoc()):'—'}</span></td><td style="white-space:nowrap"><button class="mini" onclick="openChat('${esc(p.dev)}')">💬${un[p.dev]?' ('+un[p.dev]+')':''}</button> <button class="mini" onclick="fillLicDev('${esc(p.dev)}')">✓ Abonnement</button></td></tr>`).join('');
+ return `<section class="setting-card wide"><div class="panel-head"><h3>👥 Comptes partenaires (${list.length})</h3><button class="btn light" onclick="partnersPoll(true)">↻ Actualiser</button></div><div class="table-wrap"><table class="data-table"><tr><th>Boutique</th><th>Comptes utilisateurs</th><th>Abonnement</th><th>Dernière connexion</th><th></th></tr>${rows||'<tr><td colspan="5" class="empty">Aucun compte reçu pour le moment.</td></tr>'}</table></div><p class="hint">Un partenaire apparaît dès qu'il ouvre l'application mise à jour avec Internet (et à chaque modification de ses comptes). La liste est conservée sur cet appareil.</p></section>`}
+{const o=TABS.own;TABS.own=function(){return partnersCard()+o.apply(this,arguments)}}
 </script>
 </body></html>
