@@ -1,0 +1,10 @@
+BoutiqueGest v2.3.4 - Package complet
+
+1. Extraire TOUT le ZIP dans un dossier (ne pas separer les fichiers).
+2. Heberger le dossier en HTTPS (GitHub Pages, Netlify, Cloudflare Pages...)
+   puis ouvrir l'adresse sur le telephone > "Ajouter a l'ecran d'accueil".
+   (Le scan camera, la PWA et les notifications exigent HTTPS.)
+3. Premiere ouverture avec internet : charge Supabase et le scanner,
+   ensuite l'app reste utilisable hors-ligne.
+
+Fichiers : index.html, sw.js, manifest.json, 4 icones PNG.
