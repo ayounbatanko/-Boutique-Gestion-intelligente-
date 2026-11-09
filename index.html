@@ -52,7 +52,7 @@ iframe[id^="netlify"], a[href*="netlify.com/experimental"], div:has(> a[href*="n
 <body>
 <div class="app-shell">
 <aside class="sidebar" id="sidebar">
-  <div class="brand"><div class="brand-logo" id="brandLogo">RG</div><div><b id="brandName">BOUTIQUEGEST</b><small>GESTION BOUTIQUE</small></div></div>
+  <div class="brand"><div class="brand-logo" id="brandLogo">RG</div><div><b id="brandName">BOUTIQUE GESTION</b><small>INTELLIGENTE</small></div></div>
   <div class="side-label">MENU PRINCIPAL</div>
   <nav id="nav">
     <button class="nav-item active" data-page="dashboard"><span>▦</span> Tableau de bord</button>
@@ -186,7 +186,7 @@ async function ensureCameraPermission(){
   });
 }
 async function boot(){
-  try{ await ensureCameraPermission(); }catch(e){ console.warn(e); }
+  // La caméra n'est plus demandée au démarrage : l'autorisation n'apparaît que lorsqu'on appuie sur « Scanner ».
   proceedBoot();
 }
 function showSetup(){let w=$("#lockWrap");if(!w){w=document.createElement("div");w.id="lockWrap";w.className="modal-wrap lock";document.body.appendChild(w)}w.hidden=false;let u=db.users[0];
@@ -1520,6 +1520,36 @@ function partnersCard(){const m=partnersMap(),un=unreadMap(),list=Object.values(
  const ids=new Set(db.products.map(x=>x.supplierId));
  db.suppliers=(db.suppliers||[]).filter(x=>!(S.includes(x.name)&&!ids.has(x.id)&&!(db.supplyOrders||[]).some(o=>o.supplierId===x.id)));
  LS.rg_demo_clean='1';if(before!==db.products.length+db.suppliers.length){save()}
+}catch(e){}})();
+</script>
+<!-- Bandeau de téléchargement de l'application Android (APK) : reste affiché dans le navigateur, disparaît dans l'application installée -->
+<style>
+#apkBanner{display:none;position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:9980;background:#0b2a9c;color:#fff;border:2px solid #ffd21f;border-radius:18px;padding:12px 14px;box-shadow:0 10px 30px #0008;font-family:Inter,system-ui,sans-serif;max-width:520px;margin:0 auto;align-items:center;gap:12px}
+#apkBanner .apk-txt{flex:1;min-width:0}
+#apkBanner b{display:block;font-size:14.5px;line-height:1.2}
+#apkBanner span{display:block;font-size:12px;color:#cfe0ff;margin-top:2px;line-height:1.25}
+#apkBanner a{flex:none;text-align:center;background:#ffd21f;color:#06185f;font-weight:800;font-size:14.5px;padding:11px 16px;border-radius:12px;text-decoration:none}
+body.apk-on{padding-bottom:96px}
+</style>
+<div id="apkBanner" role="region" aria-label="Télécharger l'application Android">
+ <div class="apk-txt"><b>📲 Installez l'application Android</b><span>Ouvrez votre boutique en un clic depuis l'écran d'accueil.</span></div>
+ <a id="apkLink" href="boutique-gestion-intelligente.apk" download>Télécharger</a>
+</div>
+<script>
+(function(){try{
+ var ua=navigator.userAgent||"";
+ var isAndroid=/Android/i.test(ua);
+ var inWebView=/; wv\)/i.test(ua);
+ var standalone=(window.matchMedia&&(matchMedia("(display-mode: standalone)").matches||matchMedia("(display-mode: fullscreen)").matches))||navigator.standalone===true;
+ var fromApp=(document.referrer||"").indexOf("android-app://")===0;
+ var KEY="apk_app_installed";
+ var b=document.getElementById("apkBanner");if(!b)return;
+ // Application installée : on retient l'info et on cache le bandeau
+ if(standalone||fromApp||inWebView){try{localStorage.setItem(KEY,"1")}catch(e){}b.style.display="none";return}
+ var installed=false;try{installed=localStorage.getItem(KEY)==="1"}catch(e){}
+ // Navigateur Android, application pas encore installée : le bandeau reste affiché
+ if(!isAndroid||installed)return;
+ b.style.display="flex";document.body.classList.add("apk-on");
 }catch(e){}})();
 </script>
 </body></html>
